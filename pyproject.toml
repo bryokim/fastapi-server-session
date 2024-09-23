@@ -1,9 +1,43 @@
+[build-system]
+requires = ["setuptools", "pymongo", "redis"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fastapi-server-session"
+dependencies = ["fastapi"]
+authors = [{ name = "DevGuyAhnaf", email = "ahnaf@ahnafzamil.com" }]
+description = "A dependency-based extension for FastAPI that adds support for server-sided session management"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT License" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3.10",
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+pymongo = ["pymongo"]
+redis = ["redis"]
+all = ["redis", "pymongo"]
+
+[project.urls]
+Repository = "https://github.com/bryokim/fastapi-server-session"
+Homepage = "https://github.com/bryokim/fastapi-server-session"
+
+[tool.setuptools.packages.find]
+include = ["fastapi_server_session", "fastapi_server_session.interfaces"]
+
+[tool.setuptools.dynamic]
+version = { attr = "fastapi_server_session.__version__" }
+
 [tool.black]
 line-length = 90
 include = '\.pyi?$'
 exclude = '''
 /(
-    \.git
+    \.git"
   | \.nox
   | \.venv
   | migrations
