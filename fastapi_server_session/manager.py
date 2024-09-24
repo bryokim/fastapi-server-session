@@ -28,6 +28,12 @@ class SessionManager:
         self.interface = interface
 
     def use_session(self, session_id: str):
+        if not session_id:
+            raise ValueError("must provide session_id and cannot be an empty string")
+
+        if type(session_id) is not str:
+            raise TypeError("session_id must be a string")
+
         return Session(
             interface=self.interface,
             session_id=session_id,
