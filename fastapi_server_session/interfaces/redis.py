@@ -1,3 +1,5 @@
+# pyright: basic
+
 # Copyright (c) 2022 DevGuyAhnaf
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,8 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .base import BaseSessionInterface
 from datetime import timedelta
+from typing import override
+
+from .base import BaseSessionInterface
 
 try:
     import redis
@@ -32,18 +36,19 @@ import json
 
 
 class RedisSessionInterface(BaseSessionInterface):
-    def __init__(self, redis_client: redis.Redis):
+    def __init__(self, redis_client: redis.Redis, expire: timedelta):
         self.redis = redis_client
+        self.expire = expire or timedelta(days=7)
 
-    def _set_session_data(self, session_id: str, data: dict):
-        self.redis.set(
-            session_id, json.dumps(data), ex=timedelta(days=15)
-        )  # Session expires after 15 days
+    @override
+    def _set_session_data(self, session_id: str, data: dict, expire: timedelta):
+        self.redis.set(session_id, json.dumps(data), ex=(expire or self.expire))
 
+    @override
     def _get_session_data(self, session_id: str) -> dict:
         try:
             return json.loads(self.redis.get(session_id))
-        except:
+        except Exception:
             return {}
 
     def _delete_session(self, session_id: str):

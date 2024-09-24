@@ -18,34 +18,17 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from fastapi import Request, Response
+
 from .interfaces.base import BaseSessionInterface
 from .session import Session
-
-import uuid
-
-
-def is_valid_uuid(val):
-    try:
-        uuid.UUID(str(val))
-        return True
-    except ValueError:
-        return False
 
 
 class SessionManager:
     def __init__(self, interface: BaseSessionInterface):
         self.interface = interface
 
-    def use_session(self, request: Request, response: Response):
-        session_id = str(request.cookies.get("session"))
-
-        if not is_valid_uuid(session_id):
-            return Session(request=request, response=response, interface=self.interface)
-
+    def use_session(self, session_id: str):
         return Session(
-            request=request,
-            response=response,
             interface=self.interface,
             session_id=session_id,
         )

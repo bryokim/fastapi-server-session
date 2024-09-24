@@ -1,3 +1,5 @@
+# pyright: basic
+
 # Copyright (c) 2022 DevGuyAhnaf
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -19,6 +21,7 @@
 # SOFTWARE.
 
 from datetime import datetime, timedelta, timezone
+from typing import override
 
 from .base import BaseSessionInterface
 
@@ -43,15 +46,15 @@ class MongoSessionInterface(BaseSessionInterface):
     All Optional parameters are kwargs
         expire: timedelta object for ttl
     """
+
     def __init__(
         self,
         client: pymongo.MongoClient,
-        *,
         db: str,
         collection: str,
-        session_id_key: str = "key",
+        session_id_key: str,
+        expire: timedelta,
         created_at_key: str = "_lib_created_at_",
-        expire: timedelta = timedelta(days=15)
     ):
         self.client = client
         self.db = db
@@ -68,12 +71,15 @@ class MongoSessionInterface(BaseSessionInterface):
             _db.create_collection(self.collection)
 
         _collection = _db[self.collection]
-        _collection.create_index(self.session_id_key, name="user_session_id")
+        _collection.create_index(self.session_id_key, name="session_id")
         _collection.create_index(
             self.created_at_key, expireAfterSeconds=self.expire.total_seconds()
         )
 
-    def _set_session_data(self, session_id: str, data: dict):
+    @override
+    def _set_session_data(
+        self, session_id: str, data: dict, expire: timedelta | None = None
+    ):
         _db = self.client[self.db]
         _collection = _db[self.collection]
         query = {self.session_id_key: session_id}
@@ -85,7 +91,8 @@ class MongoSessionInterface(BaseSessionInterface):
         )
         _collection.update_one(query, {"$set": {**data}}, upsert=True)
 
-    def _get_session_data(self, session_id: str) -> dict:
+    @override
+    def _get_session_data(self, session_id: str) -> dict | None:
         try:
             _db = self.client[self.db]
             _collection = _db[self.collection]
@@ -94,6 +101,7 @@ class MongoSessionInterface(BaseSessionInterface):
         except Exception:
             raise
 
+    @override
     def _delete_session(self, session_id: str):
         _db = self.client[self.db]
         _collection = _db[self.collection]
