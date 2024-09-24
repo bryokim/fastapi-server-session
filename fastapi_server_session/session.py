@@ -50,8 +50,22 @@ class Session(MutableMapping):
     def __setitem__(self, key, value) -> None:
         self._session_check()
         data = self.interface._get_session_data(self.session_id)
-        data[key] = value
-        self.interface._set_session_data(self.session_id, data)
+
+        expire = None
+
+        if type(value) is dict and value.get("_parse_"):
+            try:
+                data[key] = value["value"]
+            except KeyError:
+                raise ValueError(
+                    "dict must have the 'value' key with the value to be set"
+                )
+
+            expire = value.get("expire", None)
+        else:
+            data[key] = value
+
+        self.interface._set_session_data(self.session_id, data, expire=expire)
 
     def __getitem__(self, key) -> Any | None:
         try:
