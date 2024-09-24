@@ -20,7 +20,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import uuid
 from collections.abc import MutableMapping
 from typing import Any
 
@@ -41,8 +40,8 @@ class Session(MutableMapping):
         self.interface._set_session_data(session_id, {})
 
     def _session_check(self) -> None:
-        if not self.session_id or not self.interface._get_session_data(self.session_id):
-            self._initiate_session(str(uuid.uuid4()))
+        if not self.interface._get_session_data(self.session_id):
+            self._initiate_session(self.session_id)
 
     def clear(self) -> None:
         """Clears and deletes the session"""
