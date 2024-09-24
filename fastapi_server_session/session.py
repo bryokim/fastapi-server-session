@@ -1,3 +1,5 @@
+# pyright: basic
+
 # Copyright (c) 2022 DevGuyAhnaf
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -18,33 +20,25 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from collections.abc import MutableMapping
-from .interfaces.base import BaseSessionInterface
-from fastapi import Response, Request
-from typing import Optional
-
 import uuid
+from collections.abc import MutableMapping
+from typing import Any
+
+from .interfaces.base import BaseSessionInterface
 
 
 class Session(MutableMapping):
     def __init__(
         self,
-        response: Response,
-        request: Request,
         interface: BaseSessionInterface,
-        session_id: Optional[str] = None,
+        session_id: str,
     ):
-        self.response = response
-        self.request = request
         self.session_id = session_id
         self.interface = interface
 
     def _initiate_session(self, session_id: str) -> None:
         self.session_id = session_id
         self.interface._set_session_data(session_id, {})
-        self.response.set_cookie(
-            "session", session_id, expires=60 * 60 * 24 * 15, httponly=True
-        )  # Expires after 15 days
 
     def _session_check(self) -> None:
         if not self.session_id or not self.interface._get_session_data(self.session_id):
@@ -53,7 +47,6 @@ class Session(MutableMapping):
     def clear(self) -> None:
         """Clears and deletes the session"""
         self.interface._delete_session(self.session_id)
-        self.response.delete_cookie("session", httponly=True)
 
     def __setitem__(self, key, value) -> None:
         self._session_check()
@@ -61,10 +54,10 @@ class Session(MutableMapping):
         data[key] = value
         self.interface._set_session_data(self.session_id, data)
 
-    def __getitem__(self, key) -> Optional[any]:
+    def __getitem__(self, key) -> Any | None:
         try:
             return self.interface._get_session_data(self.session_id).get(key)
-        except:
+        except Exception:
             return None
 
     def __delitem__(self, key) -> None:

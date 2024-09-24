@@ -19,6 +19,7 @@
 # SOFTWARE.
 
 from abc import ABC, abstractmethod
+from datetime import timedelta
 
 
 class BaseSessionInterface(ABC):
@@ -34,7 +35,9 @@ class BaseSessionInterface(ABC):
         """
 
     @abstractmethod
-    def _set_session_data(self, session_id: str, data: dict):
+    def _set_session_data(
+        self, session_id: str, data: dict, expire: timedelta | None = None
+    ):
         """Stores session data  in a datastore."""
 
     @abstractmethod
